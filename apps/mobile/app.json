@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "prototype-golf",
+    "slug": "prototype-golf",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.prototypegolf.app"
+    },
+    "android": {
+      "package": "com.prototypegolf.app"
+    }
+  }
+}
