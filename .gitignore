@@ -25,3 +25,6 @@ coverage/
 # misc
 .DS_Store
 *.log
+
+# git worktrees (fe / be checkouts)
+.worktrees/
