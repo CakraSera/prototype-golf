@@ -78,7 +78,7 @@ Use the native Node runtime with the repository root as the service root:
 
 ## Documenting routes
 
-Register HTTP routes with `createRoute` and `app.openapi` from `@hono/zod-openapi`, as demonstrated by `/health` in `src/app.ts`. Their schemas generate `/openapi.json`; Scalar reads that document. Plain `app.get` routes are not automatically documented. `src/index.ts` owns server startup separately from the app.
+Routes live in `src/modules/<name>/route.ts` as an `OpenAPIHono` sub-app (see `src/modules/health/route.ts`) and are mounted in `src/app.ts` with `app.route('/<name>', <name>Route)`. `Scalar.serve` generates the OpenAPI 3.1 document from the registered routes, serving it at `/openapi.json` and the reference at `/`; the document uses a relative server URL, so it works on any host. Plain `app.get` routes are not automatically documented. `src/app.ts` also applies request logging and CORS; `src/index.ts` owns server startup and pool shutdown.
 
 ## References
 
