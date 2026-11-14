@@ -1,7 +1,7 @@
 services:
   database:
     build:
-      context: ./db
+      context: ./apps/api/db
     env_file:
       - .env
     ports:
