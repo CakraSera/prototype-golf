@@ -1,6 +1,7 @@
+import './global.css';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { createApiClient } from '@golf/shared';
 
 const api = createApiClient(process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000');
@@ -21,37 +22,14 @@ export default function App() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>prototype-golf</Text>
-      {health.state === 'loading' && <Text style={styles.muted}>checking api...</Text>}
-      {health.state === 'ok' && <Text style={styles.ok}>api ok - {health.time}</Text>}
-      {health.state === 'error' && <Text style={styles.error}>{health.message}</Text>}
+    <View className="flex-1 items-center justify-center gap-2 bg-white px-6">
+      <Text className="text-xl font-semibold text-neutral-900">prototype-golf</Text>
+      {health.state === 'loading' && <Text className="text-neutral-500">checking api...</Text>}
+      {health.state === 'ok' && <Text className="text-green-700">api ok - {health.time}</Text>}
+      {health.state === 'error' && (
+        <Text className="text-center text-red-700">{health.message}</Text>
+      )}
       <StatusBar style="auto" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  muted: {
-    color: '#666',
-  },
-  ok: {
-    color: '#1a7f37',
-  },
-  error: {
-    color: '#b42318',
-    paddingHorizontal: 24,
-    textAlign: 'center',
-  },
-});
