@@ -17,13 +17,58 @@ apps/mobile/ios/
 *.tsbuildinfo
 coverage/
 
-# local env
+# --- secrets: never commit ---
+
+# env files (templates stay tracked)
 .env
-.env*.local
+.env.*
 !.env.example
+!.env.*.example
+
+# npm/pnpm auth tokens and local config
+.npmrc
+.npmrc.*
+.npm-token*
+
+# Android signing material
+*.jks
+*.keystore
+keystore.properties
+local.properties
+# Apple signing material
+*.p8
+*.p9
+*.p12
+*.cer
+*.der
+*.pfx
+*.pem
+*.key
+*.mobileprovision
+*.provisionprofile
+
+# Firebase / Google service credentials
+google-services.json
+GoogleService-Info.plist
+*-service-account.json
+service-account*.json
+firebase-adminsdk*.json
+
+# Expo/EAS local credential exports
+credentials.json
+apps/mobile/credentials.json
+
+# private SSH keys
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+id_ecdsa
+id_ecdsa.*
 
 # misc
 .DS_Store
+Thumbs.db
 *.log
 
 # git worktrees (fe / be checkouts)
