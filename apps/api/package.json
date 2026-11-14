@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm with-env tsx watch src/index.ts",
-    "start": "pnpm with-env tsx src/index.ts",
+    "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "db:generate": "pnpm with-env drizzle-kit generate",
     "db:migrate": "pnpm with-env drizzle-kit migrate",
@@ -17,17 +17,17 @@
     "@hono/node-server": "^2.1.8",
     "@hono/zod-openapi": "^1.6.3",
     "@scalar/hono-api-reference": "^0.12.20",
+    "dotenv-cli": "10.0.0",
+    "drizzle-kit": "0.31.11",
     "drizzle-orm": "0.45.4",
     "hono": "^4.13.18",
     "pg": "^8.23.1",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
-    "dotenv-cli": "10.0.0",
-    "drizzle-kit": "0.31.11",
-    "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   }
 }
