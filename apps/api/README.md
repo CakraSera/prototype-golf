@@ -8,19 +8,19 @@ From the repository root (Node >=22, pnpm, and Docker Compose required):
 
 ```sh
 pnpm install
-cp apps/api/.env.example apps/api/.env
+cp .env.example .env
 # Uses local-only development credentials; do not use these in production.
-docker compose -f apps/api/compose.yaml up -d --wait
+docker compose up -d --wait
 pnpm dev:api
 ```
 
-The API and Drizzle commands load `apps/api/.env` when run through the package scripts. Existing environment variables take precedence. `DATABASE_URL` is required; `PORT` defaults to `3000`. For hosted PostgreSQL, set `DATABASE_URL` to the provider's connection URL, including its required SSL options.
+The API and Drizzle scripts load the repository-root `.env` through `dotenv-cli` (`pnpm with-env`), including `${VAR}` expansion inside it. Variables already set in the shell take precedence. `DATABASE_URL` is required; `PORT` defaults to `3000`. For hosted PostgreSQL, set `DATABASE_URL` to the provider's connection URL, including its required SSL options.
 
-`db/Dockerfile` pins `postgres:18.6` and adds a TCP `pg_isready` health check; `compose.yaml` builds it as the `database` service. `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` come from `.env` and only take effect when the volume is empty.
+`apps/api/db/Dockerfile` pins `postgres:18.6` and adds a TCP `pg_isready` health check; the root `docker-compose.yaml` builds it as the `database` service. `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` come from `.env` and only take effect when the volume is empty.
 
 PostgreSQL 18 stores its data in `/var/lib/postgresql/18/docker`, so the `postgres-data` volume mounts at `/var/lib/postgresql`, not the older `/var/lib/postgresql/data`. Mounting the wrong path makes data vanish on container re-creation.
 
-- Scalar API reference: http://localhost:3000/docs
+- Scalar API reference: http://localhost:3000/
 - OpenAPI JSON: http://localhost:3000/openapi.json
 - Liveness: http://localhost:3000/health (does not query the database)
 
@@ -29,13 +29,13 @@ The documentation is currently public, like `/health`. Protect it if protected e
 Stop local PostgreSQL without deleting its data:
 
 ```sh
-docker compose -f apps/api/compose.yaml down
+docker compose down
 ```
 
 Rebuild the database image after editing `db/Dockerfile`:
 
 ```sh
-docker compose -f apps/api/compose.yaml build database
+docker compose build database
 ```
 
 Delete the `postgres-data` volume, then start again, to re-run first-start initialization from a clean database.
