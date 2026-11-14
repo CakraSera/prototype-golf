@@ -42,7 +42,7 @@ app.doc31('/openapi.json', {
   servers: [{ url: '/' }],
 });
 
-app.get('/docs', Scalar({
+app.get('/', Scalar({
   url: '/openapi.json',
   pageTitle: 'Golf API Reference',
 }));

@@ -20,7 +20,7 @@ The API and Drizzle scripts load the repository-root `.env` through `dotenv-cli`
 
 PostgreSQL 18 stores its data in `/var/lib/postgresql/18/docker`, so the `postgres-data` volume mounts at `/var/lib/postgresql`, not the older `/var/lib/postgresql/data`. Mounting the wrong path makes data vanish on container re-creation.
 
-- Scalar API reference: http://localhost:3000/docs
+- Scalar API reference: http://localhost:3000/
 - OpenAPI JSON: http://localhost:3000/openapi.json
 - Liveness: http://localhost:3000/health (does not query the database)
 
