@@ -1,6 +1,8 @@
 packages:
   - apps/*
   - packages/*
+# Metro cannot follow pnpm's isolated symlink layout reliably.
+nodeLinker: hoisted
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
