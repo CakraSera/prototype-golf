@@ -22,6 +22,12 @@ importers:
       '@scalar/hono-api-reference':
         specifier: ^0.12.20
         version: 0.12.20(hono@4.13.18)
+      dotenv-cli:
+        specifier: 10.0.0
+        version: 10.0.0
+      drizzle-kit:
+        specifier: 0.31.11
+        version: 0.31.11
       drizzle-orm:
         specifier: 0.45.4
         version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
@@ -31,6 +37,9 @@ importers:
       pg:
         specifier: ^8.23.1
         version: 8.23.1
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -41,15 +50,6 @@ importers:
       '@types/pg':
         specifier: ^8.23.1
         version: 8.23.1
-      dotenv-cli:
-        specifier: 10.0.0
-        version: 10.0.0
-      drizzle-kit:
-        specifier: 0.31.11
-        version: 0.31.11
-      tsx:
-        specifier: ^4.23.15
-        version: 4.23.15
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

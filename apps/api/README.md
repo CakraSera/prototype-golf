@@ -14,7 +14,7 @@ docker compose up -d --wait
 pnpm dev:api
 ```
 
-The API and Drizzle scripts load the repository-root `.env` through `dotenv-cli` (`pnpm with-env`), including `${VAR}` expansion inside it. Variables already set in the shell take precedence. `DATABASE_URL` is required; `PORT` defaults to `3000`. For hosted PostgreSQL, set `DATABASE_URL` to the provider's connection URL, including its required SSL options.
+`dev` and the `db:*` scripts load the repository-root `.env` through `dotenv-cli` (`pnpm with-env`), including `${VAR}` expansion inside it. Variables already set in the shell take precedence. `start` reads configuration from the process environment only, so hosted deployments pass `DATABASE_URL` (and optionally `PORT`, default `3000`) directly. For hosted PostgreSQL, use the provider's connection URL, including any required SSL options.
 
 `apps/api/db/Dockerfile` pins `postgres:18.6` and adds a TCP `pg_isready` health check; the root `docker-compose.yaml` builds it as the `database` service. `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` come from `.env` and only take effect when the volume is empty.
 
@@ -62,6 +62,19 @@ pnpm --filter @golf/api typecheck
 ```
 
 Stable Drizzle ORM and Kit versions are pinned together rather than copying the reference project's release candidates.
+
+## Deploying to Render
+
+Use the native Node runtime with the repository root as the service root:
+
+- Build: `pnpm install --frozen-lockfile` (`--prod` works too; `tsx`, `drizzle-kit`, and `dotenv-cli` are regular dependencies)
+- Start: `pnpm --filter @golf/api start`
+- Pre-deploy (paid plans only): `pnpm --filter @golf/api db:migrate`
+- Health check path: `/health`
+- `DATABASE_URL`: the Render Postgres internal URL from the same region
+- `NODE_VERSION=24`: the root `engines.node` range is unbounded, and Render resolves unbounded ranges to the latest Node release
+
+`start` does not read `.env`; configuration comes from the service environment. Free plans cannot use pre-deploy commands, so run migrations from a machine using the database's external URL, for example `DATABASE_URL="postgresql://...?sslmode=require" pnpm --filter @golf/api db:migrate`.
 
 ## Documenting routes
 
