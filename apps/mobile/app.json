@@ -2,6 +2,7 @@
   "expo": {
     "name": "prototype-golf",
     "slug": "prototype-golf",
+    "scheme": "prototypegolf",
     "version": "0.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -19,6 +20,9 @@
         "projectId": "0411a75e-2a2a-4196-821d-78696e4cc147"
       }
     },
-    "owner": "cakrasera"
+    "owner": "cakrasera",
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
