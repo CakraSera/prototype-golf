@@ -4,6 +4,7 @@ packages:
 # Metro cannot follow pnpm's isolated symlink layout reliably.
 nodeLinker: hoisted
 allowBuilds:
+  argon2: true
   esbuild: true
 minimumReleaseAgeExclude:
   - expo@58.0.25
