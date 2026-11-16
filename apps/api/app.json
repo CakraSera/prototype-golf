@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "8a4cccde-6e96-45d8-93e0-32217da93751"
+      }
+    },
+    "owner": "cakrasera",
+    "slug": "golfapi"
+  }
+}
