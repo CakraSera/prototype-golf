@@ -1,21 +1,34 @@
-import '../global.css';
-
-import { NativeTabs } from 'expo-router/native-tabs';
+import { Stack } from 'expo-router/stack';
 import { StatusBar } from 'expo-status-bar';
+
+import { NotificationsButton, ProfileButton } from '../components/header-buttons';
+import { colors } from '../theme';
+import '../global.css';
 
 export default function RootLayout() {
   return (
     <>
-      <NativeTabs>
-        <NativeTabs.Trigger name="index">
-          <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
-          <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="progress">
-          <NativeTabs.Trigger.Icon sf="chart.line.uptrend.xyaxis" md="trending_up" />
-          <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-      </NativeTabs>
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.foreground,
+          headerTitleStyle: { color: colors.foreground },
+          headerShadowVisible: false,
+          headerBackButtonDisplayMode: 'minimal',
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            title: '',
+            headerLeft: () => <ProfileButton />,
+            headerRight: () => <NotificationsButton />,
+          }}
+        />
+        <Stack.Screen name="profile" options={{ title: 'Profile' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+      </Stack>
       <StatusBar style="dark" />
     </>
   );
