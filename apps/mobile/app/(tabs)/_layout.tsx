@@ -1,7 +1,9 @@
 import { NativeTabs } from 'expo-router/native-tabs';
+import { PracticeProvider } from '../../features/practice/provider';
 
 export default function TabLayout() {
   return (
+    <PracticeProvider>
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
@@ -12,5 +14,6 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
+    </PracticeProvider>
   );
 }

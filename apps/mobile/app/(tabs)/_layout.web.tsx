@@ -2,9 +2,11 @@ import { Tabs } from 'expo-router/tabs';
 import { SymbolView } from 'expo-symbols';
 
 import { colors } from '../../theme';
+import { PracticeProvider } from '../../features/practice/provider';
 
 export default function TabLayout() {
   return (
+    <PracticeProvider>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -43,5 +45,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </PracticeProvider>
   );
 }
