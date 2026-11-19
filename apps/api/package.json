@@ -7,6 +7,7 @@
     "dev": "pnpm with-env tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/modules/practice/practice.integration.test.ts",
     "db:generate": "pnpm with-env drizzle-kit generate",
     "db:migrate": "pnpm with-env drizzle-kit migrate",
     "db:studio": "pnpm with-env drizzle-kit studio",

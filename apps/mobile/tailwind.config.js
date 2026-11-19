@@ -2,7 +2,11 @@ const { colors } = require('./theme');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./app/**/*.{js,jsx,ts,tsx}', './components/**/*.{js,jsx,ts,tsx}'],
+  content: [
+    './app/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,jsx,ts,tsx}',
+    './features/**/*.{js,jsx,ts,tsx}',
+  ],
   // The app is light-only and defines no `dark:` variants. NativeWind's web
   // runtime throws on dev startup when darkMode is `media`, because its
   // MutationObserver calls colorScheme.set() once the injected stylesheet
