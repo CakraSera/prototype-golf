@@ -4,14 +4,17 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "expo start",
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "typecheck": "tsc --noEmit"
+    "dev": "pnpm with-env expo start",
+    "start": "pnpm with-env expo start",
+    "android": "pnpm with-env expo start --android",
+    "ios": "pnpm with-env expo start --ios",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "tsx --test features/practice/progress-summary.test.ts",
+    "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
     "@golf/shared": "workspace:*",
+    "dotenv-cli": "10.0.0",
     "expo": "~58.0.25",
     "expo-constants": "~58.0.16",
     "expo-crypto": "~58.0.8",
@@ -33,9 +36,11 @@
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
+    "@types/node": "^26.6.6",
     "@types/react": "~19.3.0",
     "babel-preset-expo": "~58.0.25",
     "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   }
 }

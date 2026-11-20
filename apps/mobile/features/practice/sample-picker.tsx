@@ -23,7 +23,7 @@ export function SamplePicker({ draft, onSelect, onClose }: { draft: Draft; onSel
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open} onPress={() => open ? close() : setOpen(true)} className="min-h-12 justify-center py-3">
       <Text className="text-center text-sm font-semibold text-foreground">{open ? 'Hide sample shots' : 'Try a sample shot'}</Text>
     </Pressable>
-    {open && <Text className="text-sm text-muted-foreground">Choose a shot to fill the report.</Text>}
+    {open && <Text className="text-sm leading-6 text-muted-foreground">Try three seeded reference patterns plus one unmatched example, not a live catalog preview. Choosing a sample replaces only your current report, not saved practice.</Text>}
     {open && samples.map(({ label, shot, icon }) => {
       const selected = shot.start === draft.start && shot.curve === draft.curve && shot.height === draft.height;
       return <Pressable key={label} accessibilityRole="button" accessibilityState={{ selected }} aria-pressed={selected} onPress={() => { onSelect(shot); close(); }}

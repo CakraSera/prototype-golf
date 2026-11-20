@@ -23,7 +23,7 @@ The hosted wireframe stores history in its browser. The Expo app requires an acc
 
 1. Under **Report a shot**, select **Right** for start line, **Straight** for curve, and **Normal** for height. Tap **Find my drill**.
 2. Open **Start-line check** by tapping **Start drill**. The first instruction asks you to pick a visible target and call the starting direction of your next shot.
-3. Tap **Mark complete**. History shows the drill and completion time. Reload the page to see the saved entry again.
+3. Tap **Mark complete**. Progress shows the saved drill, completion time, and last-seven-days activity. Reload the page and sign in again to retrieve the saved entry.
 
 To try the other branch, enter **Left / Left / High**. Dial displays **No matching drill**. Tap **Edit shot** to return with all three selections intact.
 
@@ -44,17 +44,24 @@ pnpm dev:api
 
 Migrations create the account tables and seed the three reference drills and matching rules. The API does not migrate automatically at startup.
 
-In a separate terminal, start the app yourself:
+In a separate terminal, start the app:
 
 ```sh
-EXPO_PUBLIC_API_URL=http://localhost:3000 pnpm dev:mobile
+pnpm dev:mobile
 ```
 
-For a physical phone, replace `localhost` with the API machine’s reachable LAN address; Android emulators can use `10.0.2.2`. Use HTTPS for a deployed API. `EXPO_PUBLIC_API_URL` is inlined into the app at build/export time, not read from the API’s root `.env`.
+Mobile's `dev`, `start`, `android`, and `ios` scripts load the root `.env` through `with-env`, just like the API. Set `EXPO_PUBLIC_API_URL` there: for a physical phone, replace `localhost` with the API machine’s reachable LAN address; Android emulators can use `10.0.2.2`. Use HTTPS for a deployed API. The URL is inlined into the app at build/export time, so restart Expo and reload the app after changing it. Only `EXPO_PUBLIC_` values are exposed to the app bundle; never use that prefix for secrets.
 
 Use SDK 58 Expo Go or rebuild an existing development client after installing the new native dependencies (`expo-secure-store`, `expo-crypto`, and `react-native-svg`).
 
 Create an account with a full name, username, email, and a 15–128 character password. Native sessions use SecureStore until the seven-day token expires. Web sessions are memory-only, so a page reload requires sign-in again; saved history remains on the server.
+
+Check the app's types and focused calendar calculation tests:
+
+```sh
+pnpm typecheck
+pnpm --filter @golf/mobile test:unit
+```
 
 The isolated API integration suite requires a PostgreSQL 18 database where the test user can create/drop schemas:
 
@@ -87,8 +94,9 @@ flowchart TD
     practice -->|Mark complete| save{"Practice saved?"}
     save -->|No| retry["Retry save"]
     retry -->|Same attempt| save
-    save -->|Yes| history["History"]
-    history -->|Report a shot| report
+    save -->|Yes| history["Progress: activity and saved drills"]
+    history -->|Go to Today: keep draft| report
+    history -->|Report a new shot: clear draft| report
 ```
 
 ## Features and UI design
@@ -99,11 +107,29 @@ flowchart TD
 | Suggested drill      | See the flight summary, feedback, and drill title. Choose **Start drill** or **Edit shot**.                                         |
 | Practice in progress | Read one instruction for the next ball. **Mark complete** saves this attempt. A failed write offers **Retry save**.                 |
 | No matching drill    | Review the unmatched shot, edit the selections, or try a sample.                                                                    |
-| History              | See completed drills grouped by day, newest first. Starting a drill adds no entry until the golfer marks it complete.               |
+| Progress             | See seven-day practice totals and daily counts above saved drills grouped by local day, newest first. Starting a drill adds no activity until it is completed and saved. |
+
+### Practice activity
+
+**Last 7 days** means today and the preceding six calendar dates in the device's current timezone, not a fixed 168-hour interval. Distinct saved attempt IDs count as completed drills; dates with at least one completion count as practiced days. Retrying an attempt counts once. Older practice remains in history even when both current totals are zero.
+
+The window updates when Progress gains focus, when the app returns to the foreground, and at the next local midnight while the tab is open. A timezone change can regroup earlier completions. Invalid timestamps are omitted from activity and history rendering, with a development diagnostic.
+
+Unknown history shows loading rather than zero activity or first-drill messaging. A failed refresh preserves the last loaded summary and list; a save acknowledgement remains separate from any refresh warning. **Go to Today** preserves the current draft. **Report a new shot** explicitly clears it.
+
+These counts describe **practice activity, not a skill score**. There are no streaks or scores.
+
+### Verification notes — 20 November 2026
+
+- Passed workspace typechecking, nine mobile calendar tests (including Jakarta boundaries and New York DST), and eleven API integration tests against an isolated PostgreSQL 18.7 database.
+- Exercised Expo web in Chromium at 320, 390, and 430 logical pixels: empty/populated Progress, seven readable date/count labels, all three seeded drills, abandonment, unmatched editing, draft-preserving navigation, lost save response and idempotent retry, loading/failure/recovery, retained data after refresh failure, account isolation, and history after signing in again.
+- Verified live midnight rollover and browser freeze/resume using a controlled Chromium clock. Verified older-only history remains visible with zero seven-day totals.
+- Android/iOS devices were unavailable. Native safe areas, large system text, VoiceOver/TalkBack, and five representative timed first-use sessions remain unverified; no 120-second usability result is claimed.
+
 
 ### Sample shot rules
 
-Start line is the ball’s initial direction relative to the intended target. Curve is how it bends afterward. Height is relative to the golfer’s usual shot. The three choices for each input yield 27 combinations. Three have sample rules, and the other 24 open the unmatched state.
+Start line is the ball’s initial direction relative to the intended target. Curve is how it bends afterward. Height is relative to the golfer’s usual shot. The three choices for each input yield 27 combinations. In the seeded demo, three have reference rules and the other 24 open the unmatched state; this is not a live catalog coverage claim. The secondary sample picker includes the three reference patterns and one unmatched example. Selecting a sample replaces only the current report, never saved practice.
 
 | Start line | Curve    | Height | Result                                             |
 | ---------- | -------- | ------ | -------------------------------------------------- |
