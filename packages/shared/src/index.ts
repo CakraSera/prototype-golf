@@ -23,13 +23,22 @@ export type DrillMatch = {
   feedback: string;
   drill: Drill;
 };
+export type ShotRead = 'correct' | 'different' | 'unsure';
+export type DrillCheckIn = {
+  utcOffsetMinutes: number;
+  confidenceBefore?: number;
+  confidenceAfter?: number;
+  actedIndependently?: boolean;
+  shotReads?: ShotRead[];
+};
 export type Completion = {
   id: string;
   ruleId: string;
   completedAt: string;
   match: DrillMatch;
+  checkIn?: DrillCheckIn;
 };
-export type CompletionInput = { id: string; ruleId: string };
+export type CompletionInput = { id: string; ruleId: string; checkIn?: DrillCheckIn };
 
 export class ApiError extends Error {
   constructor(

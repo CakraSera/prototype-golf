@@ -13,6 +13,10 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="chart.line.uptrend.xyaxis" md="trending_up" />
         <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="knowledge">
+        <NativeTabs.Trigger.Icon sf="book" md="menu_book" />
+        <NativeTabs.Trigger.Label>Knowledge</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
     </PracticeProvider>
   );

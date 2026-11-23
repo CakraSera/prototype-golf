@@ -1,0 +1,1 @@
+ALTER TABLE "practice_completions" ADD COLUMN "check_in" jsonb;

@@ -232,6 +232,7 @@ describe('authenticated practice with PostgreSQL', {
     assert.equal(saved.completion.ruleId, 'r01');
     assert.deepEqual(saved.completion.match, catalog[0]);
     assert.ok(Number.isFinite(Date.parse(saved.completion.completedAt)));
+    assert.equal('checkIn' in saved.completion, false);
     const retry = await save(alice.token, id);
     assert.equal(retry.status, 200);
     assert.deepEqual(await retry.json(), saved);
@@ -246,6 +247,61 @@ describe('authenticated practice with PostgreSQL', {
     const bodies = await Promise.all(responses.map((response) => response.json()));
     for (const body of bodies) assert.deepEqual(body, bodies[0]);
     assert.equal((await history(alice.token)).filter((row) => row.id === id).length, 1);
+  });
+
+  it('stores optional observations once, including the winner of a concurrent save', async () => {
+    const id = randomUUID();
+    const checkIns = [
+      { utcOffsetMinutes: 420, actedIndependently: false, confidenceBefore: 2, confidenceAfter: 4,
+        shotReads: ['correct', 'correct', 'different', 'correct', 'correct'] },
+      { utcOffsetMinutes: -480, actedIndependently: true, confidenceAfter: 5 },
+    ];
+    const responses = await Promise.all(checkIns.map(checkIn =>
+      request('/practice/completions', { token: alice.token, body: { id, ruleId: 'r01', checkIn } }),
+    ));
+    assert.deepEqual(responses.map(response => response.status).sort(), [200, 201]);
+    const winner = responses.findIndex(response => response.status === 201);
+    const bodies = await Promise.all(responses.map(response => response.json() as Promise<{ completion: Completion }>));
+    assert.deepEqual(bodies[0], bodies[1]);
+    assert.deepEqual(bodies[winner]!.completion.checkIn, checkIns[winner]);
+    assert.deepEqual(await (await save(alice.token, id)).json(), bodies[winner]);
+    assert.deepEqual((await history(alice.token)).filter(row => row.id === id), [bodies[winner]!.completion]);
+    assert.equal((await history(bob.token)).some(row => row.id === id), false);
+  });
+
+  it('omits an offset-only check-in but keeps an explicit needed-help observation', async () => {
+    const checkIns = [{ utcOffsetMinutes: 420 }, { utcOffsetMinutes: 420, actedIndependently: false }];
+    const [withoutEvidence, neededHelp] = await Promise.all(checkIns.map(async checkIn => {
+      const response = await request('/practice/completions', {
+        token: alice.token, body: { id: randomUUID(), ruleId: 'r01', checkIn },
+      });
+      assert.equal(response.status, 201);
+      const data = await response.json() as { completion: Completion };
+      return data.completion;
+    }));
+    assert.equal('checkIn' in withoutEvidence!, false);
+    assert.deepEqual(neededHelp!.checkIn, checkIns[1]);
+    const stored = await history(alice.token);
+    assert.deepEqual(stored.find(row => row.id === withoutEvidence!.id), withoutEvidence);
+    assert.deepEqual(stored.find(row => row.id === neededHelp!.id), neededHelp);
+  });
+
+  it('rejects invalid evidence without recording the completion', async () => {
+    const id = randomUUID();
+    const utcOffsetMinutes = 420;
+    for (const checkIn of [
+      { utcOffsetMinutes, confidenceAfter: 6 },
+      { utcOffsetMinutes, confidenceBefore: 2.5 },
+      { utcOffsetMinutes, actedIndependently: 'yes' },
+      { utcOffsetMinutes, shotReads: ['correct', 'correct', 'correct', 'correct'] },
+      { utcOffsetMinutes, shotReads: ['correct', 'correct', 'correct', 'correct', 'almost'] },
+      { utcOffsetMinutes: 841, confidenceAfter: 4 },
+    ]) {
+      await errorResponse(await request('/practice/completions', {
+        token: alice.token, body: { id, ruleId: 'r01', checkIn },
+      }), 400);
+    }
+    assert.equal((await history(alice.token)).some(row => row.id === id), false);
   });
 
   it('rejects a different rule for an existing attempt without replacing it', async () => {

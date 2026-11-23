@@ -19,9 +19,20 @@ export const DrillMatchSchema = z.object({
   }),
 }).openapi('DrillMatch');
 
+const confidenceRating = z.number().int().min(1).max(5);
+
+const drillCheckIn = z.object({
+  utcOffsetMinutes: z.number().int().min(-840).max(840),
+  confidenceBefore: confidenceRating.optional(),
+  confidenceAfter: confidenceRating.optional(),
+  actedIndependently: z.boolean().optional(),
+  shotReads: z.array(z.enum(['correct', 'different', 'unsure'])).length(5).optional(),
+}).openapi('DrillCheckIn');
+
 export const CompletionInputSchema = z.object({
   id: z.uuid(),
   ruleId: z.string(),
+  checkIn: drillCheckIn.optional(),
 }).openapi('CompletionInput');
 
 export const CompletionSchema = z.object({
@@ -29,6 +40,7 @@ export const CompletionSchema = z.object({
   ruleId: z.string(),
   completedAt: z.iso.datetime(),
   match: DrillMatchSchema,
+  checkIn: drillCheckIn.optional(),
 }).openapi('Completion');
 
 export const MatchResponseSchema = z.object({

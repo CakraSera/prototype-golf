@@ -33,6 +33,7 @@ function RootNavigator() {
           />
           <Stack.Screen name="profile" options={{ title: 'Profile' }} />
           <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+          <Stack.Screen name="knowledge/[id]" options={{ title: 'Knowledge', headerBackTitle: 'All articles' }} />
         </Stack.Protected>
         <Stack.Protected guard={status === 'signedOut'}>
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />
