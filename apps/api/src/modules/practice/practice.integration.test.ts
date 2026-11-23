@@ -239,6 +239,23 @@ describe('authenticated practice with PostgreSQL', {
     assert.deepEqual((await history(alice.token)).filter((row) => row.id === id), [saved.completion]);
   });
 
+  it('keeps a valid session retryable when account lookup fails during a save', async () => {
+    assert.ok(migrationPool);
+    const id = randomUUID();
+    await migrationPool.query('ALTER TABLE users RENAME TO unavailable_users');
+    try {
+      const failed = await save(alice.token, id);
+      await errorResponse(failed, 500);
+      assert.equal(failed.headers.has('WWW-Authenticate'), false);
+    } finally {
+      await migrationPool.query('ALTER TABLE unavailable_users RENAME TO users');
+    }
+
+    assert.equal((await save(alice.token, id)).status, 201);
+    assert.equal((await save(alice.token, id)).status, 200);
+    assert.equal((await history(alice.token)).filter(row => row.id === id).length, 1);
+  });
+
   it('serializes concurrent retries into one creation and identical records', async () => {
     const id = randomUUID();
     const responses = await Promise.all(Array.from({ length: 8 }, () => save(alice.token, id, 'r02')));

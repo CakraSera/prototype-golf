@@ -189,7 +189,7 @@ The match contains `ruleId`, `shot`, `feedback`, and `drill: {id, title, instruc
 {"id":"4f255564-c38e-4ee5-8c65-727cb0d94053","ruleId":"r01"}
 ```
 
-An acknowledged save from Today opens Progress. A failed save keeps the draft and attempt ID for manual retry; no offline synchronization queue or optimistic success is used. History distinguishes initial loading, failed loading, an empty result, and content. A failed refresh leaves previously loaded history visible.
+An acknowledged save from Today opens Progress. Temporary server failures keep the golfer signed in and preserve the draft and attempt ID for manual retry; no offline synchronization queue or optimistic success is used. History distinguishes initial loading, failed loading, an empty result, and content. A failed refresh leaves previously loaded history visible.
 
 `checkIn` is omitted for legacy records and skipped check-ins. When present, it records the device’s UTC offset at save time, confidence ratings from 1 to 5, a partner’s unaided/needed-help observation, or five shot-reading verdicts. The first completed five-shot check per recorded local day counts toward Flight Reader. Self-Starter and Steady Nerves require qualifying observations on two distinct days.
 

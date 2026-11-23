@@ -22,15 +22,19 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
     return unauthorized(c);
   }
 
+  let userId: string;
   try {
-    const user = await getUserById(await verifyAccessToken(token));
-    if (user === null) {
-      return unauthorized(c);
-    }
-    c.set('user', user);
+    userId = await verifyAccessToken(token);
   } catch {
     return unauthorized(c);
   }
+
+  // A failed lookup is a server error, not a reason to discard the session.
+  const user = await getUserById(userId);
+  if (user === null) {
+    return unauthorized(c);
+  }
+  c.set('user', user);
 
   await next();
 });
