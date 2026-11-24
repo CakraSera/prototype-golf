@@ -44,6 +44,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="knowledge"
+        options={{
+          title: 'Knowledge',
+          tabBarIcon: ({ color, size }) => (
+            <SymbolView
+              name={{ ios: 'book', android: 'menu_book', web: 'menu_book' }}
+              size={size}
+              tintColor={color}
+            />
+          ),
+        }}
+      />
     </Tabs>
     </PracticeProvider>
   );

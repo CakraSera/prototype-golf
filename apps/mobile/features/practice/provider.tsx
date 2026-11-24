@@ -1,18 +1,21 @@
-import { ApiError, type Completion, type DrillMatch, type Shot } from '@golf/shared';
+import { ApiError, type Completion, type DrillCheckIn, type DrillMatch, type Shot } from '@golf/shared';
 import { randomUUID } from 'expo-crypto';
-import { useRouter } from 'expo-router';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'expo-router';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { useSession } from '../auth/session';
 import { api } from '../../services/api';
+import { progressFromCompletions, type PracticeProgress } from './progress';
 
 export type Draft = Partial<Shot>;
+export type CheckInDraft = Omit<DrillCheckIn, 'utcOffsetMinutes'>;
 type Stage = 'report' | 'recommendation' | 'practice' | 'unmatched';
 type PracticeState = {
   draft: Draft;
   stage: Stage;
   match: DrillMatch | null;
   attempt: string | null;
+  checkIn: CheckInDraft;
   pending: 'match' | 'save' | null;
   error: string | null;
 };
@@ -20,16 +23,22 @@ type PracticeContextValue = PracticeState & {
   history: Completion[] | null;
   historyPending: boolean;
   historyError: string | null;
-  saved: boolean;
+  progress: PracticeProgress | null;
+  savedId: string | null;
+  achievementJump: boolean;
+  openAchievements: () => void;
+  consumeAchievementJump: () => void;
   setDraft: (draft: Draft) => void;
   findDrill: () => Promise<void>;
   start: () => void;
+  repeatLast: () => void;
+  updateCheckIn: (change: Partial<CheckInDraft>) => void;
   back: () => void;
   save: () => Promise<void>;
   newReport: () => void;
   loadHistory: () => Promise<void>;
 };
-const initial: PracticeState = { draft: {}, stage: 'report', match: null, attempt: null, pending: null, error: null };
+const initial: PracticeState = { draft: {}, stage: 'report', match: null, attempt: null, checkIn: {}, pending: null, error: null };
 const Context = createContext<PracticeContextValue | null>(null);
 
 export function PracticeProvider({ children }: { children: ReactNode }) {
@@ -40,12 +49,18 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
 
 function PracticeSession({ token, signOut, children }: { token: string; signOut: () => Promise<void>; children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const currentPath = useRef(pathname);
+  currentPath.current = pathname;
   const [state, setState] = useState<PracticeState>(initial);
   const current = useRef(state);
   const [history, setHistory] = useState<Completion[] | null>(null);
   const [historyPending, setHistoryPending] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [achievementJump, setAchievementJump] = useState(false);
+  const progress = useMemo(() => history === null ? null : progressFromCompletions(history), [history]);
+  const consumeAchievementJump = useCallback(() => setAchievementJump(false), []);
   const alive = useRef(true);
   const action = useRef<AbortController | null>(null);
   const historyRequest = useRef<AbortController | null>(null);
@@ -81,7 +96,7 @@ function PracticeSession({ token, signOut, children }: { token: string; signOut:
     try {
       const entries = await api.listCompletions(token, request.signal);
       if (!alive.current || request.signal.aborted || historyRequest.current !== request) return;
-      setHistory([...entries].sort((a, b) => b.completedAt.localeCompare(a.completedAt) || b.id.localeCompare(a.id)));
+      setHistory(entries);
     } catch (error) {
       if (!alive.current || request.signal.aborted || historyRequest.current !== request) return;
       setHistoryError(failure(error));
@@ -98,7 +113,7 @@ function PracticeSession({ token, signOut, children }: { token: string; signOut:
     if (current.current.pending === 'save') return;
     action.current?.abort();
     action.current = null;
-    setSaved(false);
+    setSavedId(null);
     update({ ...initial, draft });
   };
   const findDrill = async () => {
@@ -128,12 +143,30 @@ function PracticeSession({ token, signOut, children }: { token: string; signOut:
       update({ ...snapshot, error: 'Could not start practice. Please try again.' });
     }
   };
+  const repeatLast = () => {
+    const latest = history?.[0];
+    if (!latest || current.current.stage !== 'report' || current.current.pending) return;
+    setSavedId(null);
+    update({ ...initial, draft: latest.match.shot, match: latest.match, stage: 'recommendation' });
+  };
+  const updateCheckIn = (change: Partial<CheckInDraft>) => {
+    const snapshot = current.current;
+    if (snapshot.pending || (snapshot.stage !== 'recommendation' && snapshot.stage !== 'practice')) return;
+    update({ ...snapshot, checkIn: { ...snapshot.checkIn, ...change } });
+  };
   const back = () => {
     const snapshot = current.current;
     if (snapshot.pending === 'save') return;
     action.current?.abort();
     action.current = null;
-    update({ ...snapshot, stage: snapshot.stage === 'practice' ? 'recommendation' : 'report', attempt: null, pending: null, error: null });
+    update({
+      ...snapshot,
+      stage: snapshot.stage === 'practice' ? 'recommendation' : 'report',
+      checkIn: snapshot.stage === 'practice' ? { confidenceBefore: snapshot.checkIn.confidenceBefore } : {},
+      attempt: null,
+      pending: null,
+      error: null,
+    });
   };
   const save = async () => {
     const snapshot = current.current;
@@ -142,13 +175,18 @@ function PracticeSession({ token, signOut, children }: { token: string; signOut:
     action.current = request;
     update({ ...snapshot, pending: 'save', error: null });
     try {
-      await api.completePractice(token, { id: snapshot.attempt, ruleId: snapshot.match.ruleId }, request.signal);
+      const checkIn = Object.values(snapshot.checkIn).some(value => value !== undefined)
+        ? { ...snapshot.checkIn, utcOffsetMinutes: -new Date().getTimezoneOffset() }
+        : undefined;
+      const completion = await api.completePractice(token, {
+        id: snapshot.attempt, ruleId: snapshot.match.ruleId, checkIn,
+      }, request.signal);
       if (!alive.current || request.signal.aborted || action.current !== request) return;
       update({ ...initial, draft: snapshot.draft });
-      setSaved(true);
-      // Only a server acknowledgement permits success or navigation. Replace an older history request.
+      setSavedId(completion.id);
+      // Refresh from the server so scoring uses its authoritative completion order.
       void fetchHistory(true);
-      router.navigate('/progress');
+      if (currentPath.current === '/') router.navigate('/progress');
     } catch (error) {
       if (!alive.current || request.signal.aborted || action.current !== request) return;
       update({ ...snapshot, pending: null, error: failure(error) });
@@ -161,8 +199,15 @@ function PracticeSession({ token, signOut, children }: { token: string; signOut:
     setDraft({});
     router.navigate('/');
   };
+  const openAchievements = () => {
+    setAchievementJump(true);
+    router.navigate('/progress');
+  };
 
-  return <Context.Provider value={{ ...state, history, historyPending, historyError, saved, setDraft, findDrill, start, back, save, newReport, loadHistory }}>{children}</Context.Provider>;
+  return <Context.Provider value={{
+    ...state, history, historyPending, historyError, progress, savedId, achievementJump, openAchievements, consumeAchievementJump,
+    setDraft, findDrill, start, repeatLast, updateCheckIn, back, save, newReport, loadHistory,
+  }}>{children}</Context.Provider>;
 }
 
 export function usePractice() {

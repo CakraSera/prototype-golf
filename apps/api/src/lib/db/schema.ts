@@ -1,5 +1,6 @@
+import type { DrillCheckIn } from '@golf/shared';
 import { sql } from 'drizzle-orm';
-import { check, index, pgTable, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import { check, index, jsonb, pgTable, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
 
 const id = () =>
   uuid('id')
@@ -66,6 +67,7 @@ export const practiceCompletions = pgTable(
     id: uuid('id').notNull(),
     ruleId: varchar('rule_id', { length: 32 }).notNull().references(() => shotRules.id),
     completedAt: timestamp('completed_at', { withTimezone: true }).notNull().defaultNow(),
+    checkIn: jsonb('check_in').$type<DrillCheckIn>(),
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.id] }),

@@ -1,4 +1,4 @@
-import type { Completion, CompletionInput, Direction, Drill, DrillMatch, FlightHeight, Shot } from '@golf/shared';
+import type { Completion, CompletionInput, Direction, Drill, DrillCheckIn, DrillMatch, FlightHeight, Shot } from '@golf/shared';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../../lib/db/index.js';
 import { drills, practiceCompletions, shotRules } from '../../lib/db/schema.js';
@@ -12,10 +12,15 @@ const matchColumns = {
   drill: { id: drills.id, title: drills.title, instruction: drills.instruction },
 };
 
-const completionColumns = {
-  ...matchColumns,
+const completionRecordColumns = {
   id: practiceCompletions.id,
   completedAt: practiceCompletions.completedAt,
+  checkIn: practiceCompletions.checkIn,
+};
+
+const completionColumns = {
+  ...matchColumns,
+  ...completionRecordColumns,
 };
 
 type MatchRow = {
@@ -36,13 +41,15 @@ function toMatch(row: MatchRow): DrillMatch {
   };
 }
 
-function toCompletion(row: MatchRow & { id: string; completedAt: Date }): Completion {
-  return {
+function toCompletion(row: MatchRow & { id: string; completedAt: Date; checkIn: DrillCheckIn | null }): Completion {
+  const completion: Completion = {
     id: row.id,
     ruleId: row.ruleId,
     completedAt: row.completedAt.toISOString(),
     match: toMatch(row),
   };
+  if (row.checkIn !== null) completion.checkIn = row.checkIn;
+  return completion;
 }
 
 export async function matchShot(shot: Shot): Promise<DrillMatch | null> {
@@ -84,10 +91,15 @@ export async function completePractice(userId: string, input: CompletionInput): 
     .where(eq(shotRules.id, input.ruleId)).limit(1);
   if (!rule) return { status: 'unknownRule' };
 
+  const { checkIn } = input;
+  const hasObservation = checkIn && (
+    checkIn.confidenceBefore !== undefined || checkIn.confidenceAfter !== undefined ||
+    checkIn.actedIndependently !== undefined || checkIn.shotReads !== undefined
+  );
   const [inserted] = await db.insert(practiceCompletions)
-    .values({ userId, id: input.id, ruleId: input.ruleId })
+    .values({ userId, id: input.id, ruleId: input.ruleId, checkIn: hasObservation ? checkIn : null })
     .onConflictDoNothing({ target: [practiceCompletions.userId, practiceCompletions.id] })
-    .returning({ id: practiceCompletions.id, completedAt: practiceCompletions.completedAt });
+    .returning(completionRecordColumns);
   if (inserted) {
     return { status: 'created', completion: toCompletion({ ...rule, ...inserted }) };
   }
