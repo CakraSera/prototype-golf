@@ -38,7 +38,6 @@ export async function getUserById(id: string): Promise<AuthUser | null> {
 export async function createUser(input: {
   username: string;
   email: string;
-  fullName: string;
   passwordHash: string;
 }): Promise<AuthUser> {
   return db.transaction(async (tx) => {
@@ -47,7 +46,7 @@ export async function createUser(input: {
       .values({
         username: input.username,
         email: input.email,
-        fullName: input.fullName,
+        fullName: input.username,
       })
       .returning(userColumns);
 

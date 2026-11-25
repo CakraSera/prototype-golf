@@ -10,8 +10,10 @@ export type AuthUser = {
   fullName: string;
 };
 
+export const MIN_REGISTRATION_PASSWORD_LENGTH = 8;
+
 export type LoginInput = { email: string; password: string };
-export type RegisterInput = LoginInput & { username: string; fullName: string };
+export type RegisterInput = LoginInput & { username: string };
 export type LoginResult = { accessToken: string; user: AuthUser };
 export type Direction = 'left' | 'straight' | 'right';
 export type FlightHeight = 'low' | 'normal' | 'high';

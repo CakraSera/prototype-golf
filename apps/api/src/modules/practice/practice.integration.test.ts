@@ -73,16 +73,16 @@ describe('authenticated practice with PostgreSQL', {
     });
   }
 
-  async function account(username: string) {
+  async function account(username: string, password = 'an integration test password') {
     const email = `${username}@example.com`;
-    const password = 'an integration test password';
     const registered = await request('/auth/register', {
-      body: { username, email, password, fullName: `${username} Golfer` },
+      body: { username, email, password },
     });
     assert.equal(registered.status, 201);
     const registration = await registered.json() as { status: string; user: AuthUser };
     assert.equal(registration.status, 'ok');
     assert.equal(registration.user.email, email);
+    assert.equal(registration.user.fullName, username);
     const login = await request('/auth/login', { body: { email, password } });
     assert.equal(login.status, 200);
     const loggedIn = await login.json() as LoginResult;
@@ -140,7 +140,7 @@ describe('authenticated practice with PostgreSQL', {
     // isolated database exist; static value imports would bind the wrong pool.
     ({ pool: productionPool } = await import('../../lib/db/index.js'));
     ({ app } = await import('../../app.js'));
-    alice = await account('alice');
+    alice = await account('alice', 'golf-123');
     bob = await account('bob');
   });
 
@@ -166,6 +166,9 @@ describe('authenticated practice with PostgreSQL', {
   });
 
   it('preserves health, registration, login and authenticated identity', async () => {
+    await errorResponse(await request('/auth/register', {
+      body: { username: 'short', email: 'short@example.com', password: 'golf-12' },
+    }), 400);
     assert.equal((await request('/health')).status, 200);
     const me = await request('/auth/me', { token: alice.token });
     assert.equal(me.status, 200);

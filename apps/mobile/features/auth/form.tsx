@@ -27,16 +27,19 @@ export function AuthForm({ title, description, children }: { title: string; desc
   );
 }
 
-export function AuthField({ label, hint, ...props }: TextInputProps & { label: string; hint?: string }) {
+export function AuthField({ label, hint, trailingAction, ...props }: TextInputProps & { label: string; hint?: string; trailingAction?: ReactNode }) {
   return (
     <View className="gap-2">
       <Text className="text-sm font-semibold text-foreground">{label}</Text>
-      <TextInput
-        {...props}
-        accessibilityLabel={label}
-        placeholderTextColor={colors.mutedForeground}
-        className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 text-base text-foreground"
-      />
+      <View className="min-h-14 flex-row rounded-2xl border border-border bg-surface">
+        <TextInput
+          {...props}
+          accessibilityLabel={label}
+          placeholderTextColor={colors.mutedForeground}
+          className="min-w-0 flex-1 px-4 py-3 text-base text-foreground"
+        />
+        {trailingAction}
+      </View>
       {hint ? <Text className="text-sm text-muted-foreground">{hint}</Text> : null}
     </View>
   );
