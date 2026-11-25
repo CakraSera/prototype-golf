@@ -74,8 +74,9 @@ Stable Drizzle ORM and Kit versions are pinned together rather than copying the 
 | `POST` | `/auth/login` | none | 200 `{status:"ok", accessToken, user}` |
 | `GET` | `/auth/me` | `Authorization: Bearer <token>` | 200 `{status:"ok", user}` |
 
-- `user` is `{ id, username, email, fullName }`. Emails and usernames are trimmed and lowercased at the request schema before storage.
-- Passwords are 15–128 characters and stored as argon2id hashes. Unknown emails are compared against a cached dummy hash so login timing does not reveal whether an account exists.
+- Registration accepts `{ email, username, password }`. Emails and usernames are trimmed and lowercased before storage.
+- `user` is `{ id, username, email, fullName }`. New accounts use their username as `fullName`.
+- Registration passwords are 8–128 characters and stored as argon2id hashes. Unknown emails are compared against a cached dummy hash so login timing does not reveal whether an account exists.
 - Access tokens are HS256 JWTs valid for seven days; an expired token is rejected by `hono/jwt` verification.
 - Errors use `{status:"error", message}`. Duplicate email or username returns a generic 409; bad credentials, and missing, malformed, expired, or unknown-user tokens return a generic 401. Authenticated 401s also send `WWW-Authenticate: Bearer`.
 - Rate limiting is intentionally not implemented yet; add it before exposing the API beyond a prototype.

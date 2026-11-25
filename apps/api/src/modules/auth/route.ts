@@ -65,11 +65,11 @@ authRoute.openapi(
     },
   }),
   async (c) => {
-    const { email, password, fullName, username } = c.req.valid('json');
+    const { email, password, username } = c.req.valid('json');
     const passwordHash = await hashPassword(password);
 
     try {
-      const user = await createUser({ username, email, fullName, passwordHash });
+      const user = await createUser({ username, email, passwordHash });
       return c.json({ status: 'ok' as const, user }, 201);
     } catch (error) {
       if (isUniqueViolation(error)) {

@@ -56,7 +56,7 @@ For a physical phone, replace `localhost` with the API machine’s reachable LAN
 
 Use SDK 58 Expo Go or rebuild an existing development client after installing the new native dependencies (`expo-secure-store`, `expo-crypto`, and `react-native-svg`).
 
-Create an account with a full name, username, email, and a 15–128 character password. Native sessions use SecureStore until the seven-day token expires. Web sessions are memory-only, so a page reload requires sign-in again; saved history remains on the server.
+Create an account with an email address, username, and a password of 8–128 characters. Native sessions use SecureStore until the seven-day token expires. Web sessions are memory-only, so a page reload requires sign-in again; saved history remains on the server.
 
 Run the mobile scoring and article search tests with `pnpm --filter @golf/mobile test`.
 
@@ -170,7 +170,7 @@ The Hono API exposes the following routes. Practice requests require `Authorizat
 
 | Method | Endpoint | Behavior |
 | --- | --- | --- |
-| `POST` | `/auth/register` | Create an email/password account with `fullName` and `username`. |
+| `POST` | `/auth/register` | Create an account with `{email, username, password}`. |
 | `POST` | `/auth/login` | Return an access token and account identity. |
 | `GET` | `/auth/me` | Validate a bearer session and return its account. |
 | `POST` | `/practice/match` | Match `{start, curve, height}` exactly; return `{status:"ok", match:null}` for an unsupported valid shot. Network/server failures are errors, not unmatched results. |

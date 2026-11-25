@@ -1,3 +1,4 @@
+import { MIN_REGISTRATION_PASSWORD_LENGTH } from '@golf/shared';
 import { z } from '@hono/zod-openapi';
 
 const email = z.preprocess(
@@ -8,8 +9,7 @@ const email = z.preprocess(
 export const AuthRegisterSchema = z
   .object({
     email,
-    password: z.string().min(15).max(128),
-    fullName: z.string().trim().min(1).max(80),
+    password: z.string().min(MIN_REGISTRATION_PASSWORD_LENGTH).max(128),
     username: z.string().trim().toLowerCase().min(1).max(32),
   })
   .openapi('AuthRegister');
